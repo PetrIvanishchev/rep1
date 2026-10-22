@@ -21,6 +21,10 @@
   .dim { color: var(--dim); }
   .box { border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin-top: 28px; }
   code { background: var(--line); padding: .1em .35em; border-radius: 4px; font-size: .9em; }
+  .table-wrap { overflow-x: auto; margin-top: 28px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { color: var(--dim); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -41,6 +45,66 @@
     «Замени этот заголовок». Это нарочно.</p>
   </div>
 
+  <p id="status" class="dim">Загружаю список…</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>№</th>
+          <th>Название</th>
+          <th>Год</th>
+          <th>Режиссёр</th>
+          <th>Оценка</th>
+        </tr>
+      </thead>
+      <tbody id="movies"></tbody>
+    </table>
+  </div>
+
 </main>
+
+<script>
+  // Запрос к Wikidata: фильмы с оценкой IMDb, от высшей к низшей.
+  // Фильтры: оценка не выше 10 (в данных бывают ошибки) и фильм известен
+  // (у него есть статьи в Википедии минимум на 25 языках).
+  const query = `
+    SELECT ?film (SAMPLE(?name) AS ?title) (MIN(?y) AS ?year)
+           (GROUP_CONCAT(DISTINCT ?dirName; separator=", ") AS ?directors)
+           (MAX(?num) AS ?rating) WHERE {
+      ?film wdt:P31 wd:Q11424; wdt:P57 ?dir; wdt:P577 ?d; p:P444 ?s.
+      ?s ps:P444 ?score; pq:P447 wd:Q37312.
+      ?film rdfs:label ?name. FILTER(LANG(?name) = "en")
+      ?dir rdfs:label ?dirName. FILTER(LANG(?dirName) = "en")
+      BIND(YEAR(?d) AS ?y)
+      BIND(xsd:decimal(STRBEFORE(?score, "/")) AS ?num)
+      FILTER(?num <= 10)
+      ?film wikibase:sitelinks ?links. FILTER(?links >= 25)
+    } GROUP BY ?film ORDER BY DESC(?rating) LIMIT 30`;
+
+  const status = document.getElementById("status");
+  const tbody = document.getElementById("movies");
+
+  fetch("https://query.wikidata.org/sparql?format=json&query=" + encodeURIComponent(query))
+    .then(response => {
+      if (!response.ok) throw new Error("Ответ сервера: " + response.status);
+      return response.json();
+    })
+    .then(data => {
+      data.results.bindings.forEach((row, i) => {
+        const tr = document.createElement("tr");
+        [i + 1, row.title.value, row.year.value, row.directors.value, row.rating.value].forEach(text => {
+          const td = document.createElement("td");
+          td.textContent = text;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      status.textContent = "Источник: Wikidata (оценки IMDb).";
+    })
+    .catch(error => {
+      status.textContent = "Не удалось загрузить список фильмов. " + error.message;
+    });
+</script>
 </body>
 </html>
