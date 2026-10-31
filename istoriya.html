@@ -5,39 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>История кино по эрам</title>
 <style>
-  :root { --bg: #fbfbfa; --fg: #1a1a18; --dim: #6b6b66; --line: #e4e4e0; }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #16161a; --fg: #f0f0ee; --dim: #9a9a95; --line: #2e2e34; }
-  }
+  :root { --bg: #e8dcc0; --paper: #f6efdc; --fg: #1d1a14; --dim: #5e5444; --line: #1d1a14; }
   * { box-sizing: border-box; }
   body {
-    margin: 0; padding: 48px 16px; background: var(--bg); color: var(--fg);
-    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    position: relative; margin: 0; padding: 64px 16px 48px; background: var(--bg); color: var(--fg);
+    font: 17px/1.6 Georgia, "Times New Roman", serif;
     display: flex; justify-content: center;
   }
   main { max-width: 38rem; width: 100%; }
-  h1 { font-size: 1.75rem; line-height: 1.2; margin: 0 0 .75rem; }
-  h2 { font-size: 1.25rem; margin: 0 0 .25rem; }
+  h1 { font-size: 2.2rem; line-height: 1.15; margin: 0 0 .75rem; border-bottom: 4px double var(--line); padding-bottom: .5rem; }
+  h2 { font-size: 1.6rem; line-height: 1.2; margin: 0 0 .25rem; }
   p { margin: 0 0 1rem; }
   a { color: inherit; }
   .dim { color: var(--dim); }
-  .era { border-top: 1px solid var(--line); padding-top: 20px; margin-top: 20px; }
-  .years { color: var(--dim); margin: 0 0 .5rem; }
+  .era { background: var(--paper); padding: 24px 22px; margin: 28px 4px; transform: rotate(-1deg); clip-path: polygon(0 6px, 7% 0, 15% 5px, 24% 1px, 33% 6px, 42% 0, 53% 5px, 63% 1px, 72% 6px, 82% 0, 92% 5px, 100% 2px, 99% 30%, 100% 55%, 98.5% 80%, 100% calc(100% - 4px), 93% 100%, 84% calc(100% - 5px), 74% 100%, 63% calc(100% - 4px), 52% 100%, 41% calc(100% - 6px), 30% 100%, 19% calc(100% - 4px), 9% 100%, 0 calc(100% - 5px), 1.2% 70%, 0 45%, 1% 20%); }
+  .era:nth-of-type(even) { transform: rotate(1deg); }
+  h1 span, h2 span { display: inline-block; padding: 0 .25em; margin: 3px 2px; line-height: 1.15; border: 1px solid var(--line); box-shadow: 1px 1px 0 rgba(29, 26, 20, .4); }
+  h1 span:nth-child(4n+1), h2 span:nth-child(4n+1) { font-family: Georgia, "Times New Roman", serif; font-weight: bold; background: #fffaf0; color: #1d1a14; }
+  h1 span:nth-child(4n+2), h2 span:nth-child(4n+2) { font-family: "Courier New", monospace; font-weight: bold; background: #1d1a14; color: #f6efdc; }
+  h1 span:nth-child(4n+3), h2 span:nth-child(4n+3) { font-family: Impact, "Arial Black", sans-serif; background: #e6c84a; color: #2a1a12; }
+  h1 span:nth-child(4n+4), h2 span:nth-child(4n+4) { font-family: "Times New Roman", serif; font-style: italic; background: #b8342c; color: #fff4e0; }
+  h1 span:nth-child(5n+1), h2 span:nth-child(5n+1) { transform: rotate(-5deg); }
+  h1 span:nth-child(5n+2), h2 span:nth-child(5n+2) { transform: rotate(3deg); }
+  h1 span:nth-child(5n+3), h2 span:nth-child(5n+3) { transform: rotate(-2deg); }
+  h1 span:nth-child(5n+4), h2 span:nth-child(5n+4) { transform: rotate(5deg); }
+  h1 span:nth-child(5n+5), h2 span:nth-child(5n+5) { transform: rotate(1deg); }
+  .years { color: var(--dim); font-style: italic; margin: 0 0 .5rem; }
   .sources p { padding-left: 2rem; text-indent: -2rem; overflow-wrap: anywhere; }
-  figure { margin: 0 0 1.5rem; }
-  img { max-width: 100%; height: auto; display: block; }
+  figure { margin: 0 0 1.5rem; background: var(--paper); border: 2px solid var(--line); padding: 10px; }
+  img { max-width: 100%; height: auto; display: block; filter: grayscale(.4) sepia(.3); }
   figcaption { color: var(--dim); font-size: .9rem; margin-top: .5rem; overflow-wrap: anywhere; }
   ol li { margin-bottom: .6rem; }
+  @font-face { font-family: "OpenDyslexic"; src: url("fonts/OpenDyslexic-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+  @font-face { font-family: "OpenDyslexic"; src: url("fonts/OpenDyslexic-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+  .dys-switch { position: absolute; top: 12px; right: 12px; font: 14px/1.3 "OpenDyslexic", system-ui, sans-serif; background: #fffaf0; color: #1d1a14; border: 1px solid #1d1a14; padding: 4px 8px; cursor: pointer; }
+  .dys-switch input { margin-right: 6px; }
+  html.dys body { background: #fbfbfa; --paper: #fbfbfa; }
+  html.dys * { font-family: "OpenDyslexic", sans-serif !important; font-style: normal !important; }
+  html.dys .dys-switch, html.dys .dys-switch * { font-family: system-ui, sans-serif !important; font-size: 14px; }
+  html.dys .era { transform: none !important; clip-path: none !important; background: none !important; border-top: 1px solid var(--line); padding: 20px 0 0 !important; margin: 20px 0 !important; }
+  html.dys h1, html.dys h2 { overflow-wrap: anywhere; }
+  html.dys h1 span, html.dys h2 span { display: inline !important; transform: none !important; background: none !important; color: inherit !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; font-weight: bold; }
+  html.dys figure { border: 0; padding: 0; background: none; }
+  html.dys img { filter: none; }
 </style>
+<script>
+try { if (localStorage.dys === "1") document.documentElement.classList.add("dys"); } catch (e) {}
+</script>
 </head>
 <body>
+<label class="dys-switch"><input type="checkbox" id="dys">Шрифт для дислексии</label>
 <main>
 
-  <h1>История кино по эрам</h1>
+  <h1><span>История</span> <span>кино</span> <span>по</span> <span>эрам</span></h1>
   <p class="dim">Шесть эр: от первых публичных сеансов до стриминга.</p>
 
   <section class="era">
-    <h2>1. Рождение кино</h2>
+    <h2><span>1.</span> <span>Рождение</span> <span>кино</span></h2>
     <p class="years">1890-е – 1905</p>
     <p>Кино появилось в 1890-х годах, когда изобретатели научились снимать и показывать движущиеся картинки. В США Томас Эдисон и его помощник Уильям Диксон создали камеру и аппарат, в который смотрел один зритель. Братья Люмьер во Франции сделали устройство, которое снимало, печатало и проецировало фильмы на экран. 28 декабря 1895 года в Париже они впервые показали фильмы платной публике.</p>
     <p>Ролики длились около минуты и показывали обычную жизнь: рабочих у фабрики, прибытие поезда на вокзал. Жорж Мельес превратил кино в искусство выдумки. Он снимал фокусы, сказки и путешествия, использовал остановку камеры, наплывы и раскрашивание плёнки вручную. Его «Путешествие на Луну» (1902) стало одним из первых фантастических фильмов. В «Большом ограблении поезда» (1903) американец Эдвин Портер соединил разные места действия в одну историю. К 1905 году кино стало отдельным развлечением, а не только ярмарочным аттракционом.</p>
@@ -45,7 +69,7 @@
   </section>
 
   <section class="era">
-    <h2>2. Эра немого кино</h2>
+    <h2><span>2.</span> <span>Эра</span> <span>немого</span> <span>кино</span></h2>
     <p class="years">1905 – 1927</p>
     <p>В эти годы кино превратилось из аттракциона в большую индустрию. Появились специальные кинотеатры, и зрители шли на фильм, а не на ярмарку. Фильмы стали длиннее и получили сложные сюжеты. Дэвид Гриффит развил монтаж, крупные планы и параллельные сцены. Его «Рождение нации» (1915) повлияло на язык кино, но это расистский фильм, и о нём говорят с оговоркой.</p>
     <p>Звука на плёнке не было, поэтому показ сопровождали пианист, органист или целый оркестр, а слова появлялись на титрах. Чарли Чаплин и Бастер Китон стали звёздами комедии, которая обходилась без слов. В Германии режиссёры экспрессионизма, например в «Кабинете доктора Калигари» (1920), строили странные декорации и играли светом и тенью. В СССР Сергей Эйзенштейн в «Броненосце „Потёмкин“» (1925) показал, что монтаж сам создаёт эмоцию. Голливуд стал центром мировой киноиндустрии, и там выросли большие студии. К 1927 году немое кино достигло вершины мастерства, и вскоре его сменило звуковое.</p>
@@ -53,7 +77,7 @@
   </section>
 
   <section class="era">
-    <h2>3. Эра звука и «золотой век» Голливуда</h2>
+    <h2><span>3.</span> <span>Эра</span> <span>звука</span> <span>и</span> <span>«золотой</span> <span>век»</span> <span>Голливуда</span></h2>
     <p class="years">1927 – 1948</p>
     <p>«Певец джаза» (1927) не был первым фильмом со звуком, но именно он убедил студии и зрителей, что звуковое кино — это надолго. За несколько лет почти все кинотеатры переоборудовали, и немое кино ушло из проката. Одни звёзды немого кино не смогли продолжить карьеру, а в кино пришли театральные актёры и композиторы. Голливудские студии работали как фабрики: держали актёров и режиссёров по контрактам, снимали десятки фильмов в год и часто владели кинотеатрами.</p>
     <p>Появились жанры, которые мы знаем до сих пор: мюзикл, гангстерский фильм, вестерн и нуар. Цвет стал заметным в конце 1930-х, когда вышли «Белоснежка и семь гномов» и «Волшебник страны Оз». В «Гражданине Кейне» (1941) Орсон Уэллс показал новые приёмы: глубокий фокус, сложное повествование и необычные ракурсы. Вторая мировая война изменила кино: фильмы использовали для пропаганды, а в Европе съёмки часто останавливались. В Италии после войны возник неореализм. Режиссёры снимали на улицах и брали непрофессиональных актёров, как в «Похитителях велосипедов» (1948).</p>
@@ -61,7 +85,7 @@
   </section>
 
   <section class="era">
-    <h2>4. Эра телевидения и новых волн</h2>
+    <h2><span>4.</span> <span>Эра</span> <span>телевидения</span> <span>и</span> <span>новых</span> <span>волн</span></h2>
     <p class="years">1948 – 1975</p>
     <p>В 1948 году Верховный суд США потребовал, чтобы голливудские студии продали свои кинотеатры. Это разрушило старую систему студий. Одновременно телевизор появился почти в каждом американском доме, и зрителей в кинотеатрах стало меньше. Студии отвечали широким экраном, цветом и дорогими постановками. Но важнее было другое: подъём авторского кино.</p>
     <p>Японский режиссёр Акира Куросава в «Расёмоне» (1950) показал одно событие глазами нескольких людей, и фильм получил «Золотого льва» в Венеции в 1951 году. Во Франции «новая волна» с Годаром и Трюффо снимала на улицах и нарушала привычные правила монтажа. Италия подарила миру Феллини. В 1968 году Кодекс Хейса, по которому голливудские фильмы цензурировали десятилетиями, заменила система возрастных рейтингов. Поэтому в конце 1960-х в американское кино пришли более откровенные и мрачные истории. Независимый фильм «Ночь живых мертвецов» (1968) показал, что страшное кино можно снять на небольшие деньги. «Крёстный отец» (1972) Френсиса Форда Копполы стал вершиной американского кино этого времени.</p>
@@ -69,7 +93,7 @@
   </section>
 
   <section class="era">
-    <h2>5. Эра блокбастеров и видео</h2>
+    <h2><span>5.</span> <span>Эра</span> <span>блокбастеров</span> <span>и</span> <span>видео</span></h2>
     <p class="years">1975 – 1999</p>
     <p>«Челюсти» (1975) и «Звёздные войны» (1977) показали, что один фильм может собрать огромные деньги. Студии стали выпускать большие фильмы с мощной рекламой, чаще всего летом. Так возник блокбастер. Вместе с ним выросли продолжения, игрушки и целые вселенные. Спецэффекты стали отдельным искусством: Джордж Лукас основал студию Industrial Light &amp; Magic, и она делала эффекты для многих фильмов.</p>
     <p>Домашнее видео изменило привычки зрителей: с конца 1970-х фильмы можно было смотреть дома на кассетах VHS, а позже на лазерных дисках и DVD. Видеопрокат дал фильмам вторую жизнь и помог небольшим студиям. В 1990-х независимое кино, например «Криминальное чтиво» (1994), стало заметным и популярным. «История игрушек» (1995) стала первым полнометражным мультфильмом, полностью созданным на компьютере. «Матрица» (1999) соединила боевые сцены и цифровые эффекты. Так кино подошло к рубежу веков уже с компьютерной графикой в каждом большом фильме.</p>
@@ -77,7 +101,7 @@
   </section>
 
   <section class="era">
-    <h2>6. Цифровая эра и стриминг</h2>
+    <h2><span>6.</span> <span>Цифровая</span> <span>эра</span> <span>и</span> <span>стриминг</span></h2>
     <p class="years">2000 – наши дни</p>
     <p>В 2000-е годы кино стало цифровым. Камеры записывали изображение на цифровой носитель, а не на плёнку, и монтаж шёл на компьютере. «Звёздные войны. Эпизод II» (2002) был одним из первых больших фильмов, снятых полностью на цифровые камеры. Кинотеатры заменили плёночные проекторы цифровыми. «Аватар» (2009) показал возможности 3D и съёмки с захватом движения. «Мстители» (2012) закрепили идею общей вселенной, в которой много фильмов связаны одной историей.</p>
     <p>С 2007 года сервис Netflix начал показывать фильмы через интернет, и стриминг изменил привычки зрителей. «Рома» (2018) вышла на Netflix, получила «Золотого льва» в Венеции и была номинирована на «Оскар» за лучший фильм. Это заставило спорить, что считать кино. «Паразиты» (2019) стали первым неанглоязычным фильмом, получившим «Оскар» за лучший фильм. В 2020 году из-за пандемии кинотеатры закрывались, а многие премьеры вышли онлайн. Сегодня фильм можно смотреть где угодно, и это меняет не только то, как мы смотрим кино, но и то, какое кино снимают.</p>
@@ -99,8 +123,17 @@
     <p>«Night Of The Living Dead (1968) - Poster.jpg» <em>Wikimedia Commons</em>, Wikimedia Foundation, <a href="https://commons.wikimedia.org/wiki/File:Night_Of_The_Living_Dead_(1968)_-_Poster.jpg">commons.wikimedia.org/wiki/File:Night_Of_The_Living_Dead_(1968)_-_Poster.jpg</a>. Дата обращения: 29 окт. 2026.</p>
     <p>«Jaws movie poster (cropped 2).jpg» <em>Wikimedia Commons</em>, Wikimedia Foundation, <a href="https://commons.wikimedia.org/wiki/File:Jaws_movie_poster_(cropped_2).jpg">commons.wikimedia.org/wiki/File:Jaws_movie_poster_(cropped_2).jpg</a>. Дата обращения: 29 окт. 2026.</p>
     <p>«Anuncio de &quot;Roma&quot; en avenida Ribera de San Cosme.jpg» <em>Wikimedia Commons</em>, Wikimedia Foundation, <a href="https://commons.wikimedia.org/wiki/File:Anuncio_de_%22Roma%22_en_avenida_Ribera_de_San_Cosme.jpg">commons.wikimedia.org/wiki/File:Anuncio_de_&quot;Roma&quot;_en_avenida_Ribera_de_San_Cosme.jpg</a>. Дата обращения: 29 окт. 2026.</p>
+    <p>Gonzalez, Abbie. «OpenDyslexic.» <em>GitHub</em>, шрифт под лицензией SIL Open Font License 1.1, <a href="https://github.com/antijingoist/opendyslexic">github.com/antijingoist/opendyslexic</a>. Дата обращения: 31 окт. 2026.</p>
   </section>
 
 </main>
+<script>
+var c = document.getElementById("dys"), h = document.documentElement;
+c.checked = h.classList.contains("dys");
+c.onchange = function () {
+  h.classList.toggle("dys", c.checked);
+  try { localStorage.dys = c.checked ? "1" : "0"; } catch (e) {}
+};
+</script>
 </body>
 </html>
