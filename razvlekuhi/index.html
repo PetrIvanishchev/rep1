@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Расписание на неделю</title>
+<style>
+  @font-face { font-family: "Caveat"; src: url("fonts/Caveat-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+  @font-face { font-family: "Caveat"; src: url("fonts/Caveat-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+  :root { --bg: #fff0b3; --paper: #fffdf5; --fg: #1f1a2e; --dim: #5b4b8a; --line: #f2c96b; --h: 48px; --head: 56px; }
+  * { box-sizing: border-box; }
+  body { position: relative; margin: 0; padding: 92px 16px 48px; background: var(--bg); color: var(--fg); font: 20px/1.3 Caveat, "Comic Sans MS", cursive; }
+  h1 { display: inline-block; margin: 0 0 1.25rem; padding: 4px 22px; font-size: 44px; line-height: 1.2; background: #4dd0e1; border-radius: 16px; box-shadow: 3px 3px 0 rgba(31, 26, 46, .35); transform: rotate(-2deg); }
+  h2 { display: inline-block; margin: 0; padding: 2px 14px; font-size: 26px; line-height: 1.2; border-radius: 12px; box-shadow: 2px 2px 0 rgba(31, 26, 46, .35); }
+  .day:nth-of-type(1) h2 { background: #ff8fa3; transform: rotate(-3deg); }
+  .day:nth-of-type(2) h2 { background: #ffb347; transform: rotate(2deg); }
+  .day:nth-of-type(3) h2 { background: #ffe066; transform: rotate(-2deg); }
+  .day:nth-of-type(4) h2 { background: #8ce99a; transform: rotate(3deg); }
+  .day:nth-of-type(5) h2 { background: #74c0fc; transform: rotate(-3deg); }
+  .day:nth-of-type(6) h2 { background: #b197fc; transform: rotate(2deg); }
+  .day:nth-of-type(7) h2 { background: #f783ac; transform: rotate(-2deg); }
+  .scroll { overflow-x: auto; background: var(--paper); border: 4px solid #ff6b6b; border-radius: 16px; padding-right: 12px; }
+  .week { display: grid; grid-template-columns: 56px repeat(7, minmax(140px, 1fr)); min-width: 1020px; }
+  .head { height: var(--head); display: flex; align-items: center; justify-content: center; border-bottom: 3px solid var(--line); }
+  .day { border-left: 2px solid var(--line); }
+  .axis div { height: var(--h); font-size: 18px; color: var(--dim); text-align: right; padding: 0 6px 0 0; }
+  .track { position: relative; height: calc(18 * var(--h) + 52px);
+    background: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--h) - 2px), var(--line) calc(var(--h) - 2px), var(--line) var(--h)); }
+  .add { position: absolute; left: 4px; width: 36px; height: 36px; padding: 0; border: 3px solid #ff6b6b; border-radius: 50%; background: #fff; color: #ff6b6b; font: 700 28px/1 Caveat, "Comic Sans MS", cursive; cursor: pointer; }
+  .add:hover { background: #ff6b6b; color: #fff; }
+  .event { position: absolute; left: var(--l0); width: var(--w0); height: var(--h0); border: 2px solid rgba(31, 26, 46, .45); border-left-width: 6px; border-radius: 8px; font-size: 15px; line-height: 1.15; color: var(--fg); }
+  .event.marked { z-index: 2; }
+  .event:not(.bar-on):not(.suppress):hover { z-index: 5; width: max(var(--w0), 240px); height: auto; min-height: var(--h0); box-shadow: 0 4px 14px rgba(31, 26, 46, .4); }
+  .event .body { height: 100%; overflow: hidden; padding: 1px 5px; }
+  .event.marked .body { padding-right: 22px; }
+  .event.done .body { padding-right: 5px; }
+  .event.bar-on .body, .event.bar-circle .body, .event:not(.bar-on):not(.suppress):hover .body { padding-bottom: 28px; }
+  .event:not(.bar-on):not(.suppress):hover .body { height: auto; overflow: visible; }
+  .event strong { display: block; font-size: 22px; line-height: 1.1; font-weight: normal; }
+  .event.heavy strong { font-weight: 700; }
+  .event.done { border-color: rgba(31, 26, 46, .25); }
+  .event.done .txt { text-decoration: line-through; }
+  .sticker { position: absolute; top: -13px; right: -13px; min-width: 34px; height: 30px; padding: 0 6px; border-radius: 15px; background: #d62828; color: #fff; font: 700 26px/30px Caveat, "Comic Sans MS", cursive; text-align: center; transform: rotate(8deg); box-shadow: 0 1px 2px rgba(0, 0, 0, .45); }
+  .event.done .sticker { display: none; }
+  .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 28px; display: none; align-items: center; justify-content: space-between; padding: 0 5px 3px; }
+  .event.bar-on .bar, .event.bar-circle .bar, .event:not(.suppress):hover .bar { display: flex; }
+  .acts { display: flex; gap: 4px; }
+  .event.bar-circle .acts { display: none; }
+  .event.bar-circle:not(.suppress):hover .acts { display: flex; }
+  .icon { display: flex; border: 0; background: none; padding: 0 2px; color: var(--fg); cursor: pointer; }
+  .icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .circle { width: 22px; height: 22px; padding: 0; border: 2px solid var(--fg); border-radius: 50%; background: transparent; color: transparent; font: 700 15px/1 system-ui, sans-serif; cursor: pointer; }
+  .event.done .circle { background: var(--fg); color: var(--paper); }
+  dialog { border: 4px solid #4dabf7; border-radius: 16px; padding: 20px; background: var(--paper); color: var(--fg); width: min(94vw, 30rem); }
+  dialog::backdrop { background: rgba(60, 30, 120, .4); }
+  label { display: block; margin: 0 0 .75rem; font-size: 20px; }
+  input, select, textarea { display: block; width: 100%; margin-top: 2px; padding: 6px; font: inherit; border: 2px solid #b197fc; border-radius: 8px; background: #fff; color: var(--fg); }
+  .row { display: flex; gap: 12px; }
+  .row label { flex: 1; }
+  .time { display: flex; gap: 4px; }
+  .buttons { display: flex; gap: 12px; justify-content: flex-end; }
+  .buttons button { padding: 4px 18px; font: 700 22px Caveat, "Comic Sans MS", cursive; color: var(--fg); border: 3px solid var(--fg); border-radius: 12px; cursor: pointer; }
+  #cancel, #askNo { background: #ffa94d; }
+  #askYes { background: #ff8787; }
+  #askText { margin: 0 0 1rem; }
+  .buttons button[type="submit"] { background: #69db7c; }
+  @font-face { font-family: "OpenDyslexic"; src: url("fonts/OpenDyslexic-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+  @font-face { font-family: "OpenDyslexic"; src: url("fonts/OpenDyslexic-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+  .dys-switch { position: absolute; top: 12px; right: 12px; display: inline-block; margin: 0; padding: 4px 10px; font: 14px/1.3 "OpenDyslexic", system-ui, sans-serif; background: #fff; color: var(--fg); border: 2px solid #4dabf7; border-radius: 8px; cursor: pointer; }
+  .dys-switch input { display: inline-block; width: auto; margin: 0 6px 0 0; padding: 0; }
+  html.dys { --bg: #fbfbfa; }
+  html.dys * { font-family: "OpenDyslexic", sans-serif !important; }
+  html.dys .dys-switch, html.dys .dys-switch * { font-family: system-ui, sans-serif !important; }
+  html.dys body { font-size: 18px; }
+  html.dys h1, html.dys h2 { display: block; background: none !important; transform: none !important; box-shadow: none !important; border-radius: 0 !important; padding: 0 !important; font-weight: 700; }
+  html.dys h1 { font-size: 34px; margin-bottom: 1rem; }
+  html.dys h2 { font-size: 20px; }
+  html.dys .event { font-size: 13px; }
+  html.dys .event strong { font-size: 15px; }
+  html.dys .sticker { transform: none; }
+  .dys-switch.phone-switch { top: 48px; font-family: system-ui, sans-serif; }
+  .axis-day { display: none; }
+  html.phone .scroll { overflow: visible; border: 0; background: none; padding: 0; }
+  html.phone .week { display: block; min-width: 0; max-width: 420px; margin: 0 auto; }
+  html.phone .hours { display: none; }
+  html.phone .day { display: grid; grid-template-columns: 52px 1fr; margin: 0 0 28px; border: 3px solid #ff6b6b; border-radius: 16px; background: var(--paper); }
+  html.phone .day .head { grid-column: 1 / -1; }
+  html.phone .axis-day { display: block; }
+  html.phone h1 { display: block; width: fit-content; max-width: 100%; margin: 0 auto 1.25rem; text-align: center; }
+  #err { color: #b00020; margin: 0 0 .75rem; min-height: 1.3em; }
+</style>
+<script>
+try {
+  if (localStorage.dys === "1") document.documentElement.classList.add("dys");
+  if (localStorage.phone === "1") document.documentElement.classList.add("phone");
+} catch (e) {}
+</script>
+</head>
+<body>
+<label class="dys-switch"><input type="checkbox" id="dys">Шрифт для дислексии</label>
+<label class="dys-switch phone-switch"><input type="checkbox" id="phone">Режим для телефона</label>
+<main>
+
+  <h1>Расписание на неделю</h1>
+
+  <div class="scroll">
+    <div class="week">
+      <div class="hours"><div class="head"></div><div class="axis" id="axis"></div></div>
+      <section class="day"><div class="head"><h2>Понедельник</h2></div><div class="track" data-day="0"><button class="add" type="button" aria-label="Добавить событие: понедельник">+</button></div></section>
+      <section class="day"><div class="head"><h2>Вторник</h2></div><div class="track" data-day="1"><button class="add" type="button" aria-label="Добавить событие: вторник">+</button></div></section>
+      <section class="day"><div class="head"><h2>Среда</h2></div><div class="track" data-day="2"><button class="add" type="button" aria-label="Добавить событие: среда">+</button></div></section>
+      <section class="day"><div class="head"><h2>Четверг</h2></div><div class="track" data-day="3"><button class="add" type="button" aria-label="Добавить событие: четверг">+</button></div></section>
+      <section class="day"><div class="head"><h2>Пятница</h2></div><div class="track" data-day="4"><button class="add" type="button" aria-label="Добавить событие: пятница">+</button></div></section>
+      <section class="day"><div class="head"><h2>Суббота</h2></div><div class="track" data-day="5"><button class="add" type="button" aria-label="Добавить событие: суббота">+</button></div></section>
+      <section class="day"><div class="head"><h2>Воскресенье</h2></div><div class="track" data-day="6"><button class="add" type="button" aria-label="Добавить событие: воскресенье">+</button></div></section>
+    </div>
+  </div>
+
+  <dialog id="dlg">
+    <form id="form">
+      <label>Название <input name="title" required maxlength="80"></label>
+      <div class="row">
+        <label>Начало <span class="time"><select name="startH"></select><select name="startM"></select></span></label>
+        <label>Окончание <span class="time"><select name="endH"></select><select name="endM"></select></span></label>
+      </div>
+      <div class="row">
+        <label>Важность <select name="level"></select></label>
+        <label>Цвет <select name="color"></select></label>
+      </div>
+      <label>Участники <input name="people" maxlength="120"></label>
+      <label>Примечание <textarea name="note" rows="3" maxlength="300"></textarea></label>
+      <p id="err"></p>
+      <div class="buttons">
+        <button type="button" id="cancel">Отмена</button>
+        <button type="submit">Сохранить</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="ask">
+    <p id="askText"></p>
+    <div class="buttons">
+      <button type="button" id="askNo">Нет</button>
+      <button type="button" id="askYes">Да</button>
+    </div>
+  </dialog>
+
+</main>
+<script>
+(function () {
+  var root = document.documentElement;
+  function refresh() {
+    if (window.render) { render(); if (document.fonts) document.fonts.ready.then(render); }
+  }
+  ["dys", "phone"].forEach(function (name) {
+    var sw = document.getElementById(name);
+    sw.checked = root.classList.contains(name);
+    sw.onchange = function () {
+      root.classList.toggle(name, sw.checked);
+      try { localStorage.setItem(name, sw.checked ? "1" : "0"); } catch (e) {}
+      refresh();
+    };
+  });
+})();
+</script>
+<script>
+var START = 6, END = 24, H = 48, KEY = "razvlekuhi-week";
+var COLORS = { "Красный": "#f4b6b0", "Оранжевый": "#f8cfa0", "Жёлтый": "#f3e6a0", "Зелёный": "#b9e0b4", "Синий": "#b4d0f0", "Фиолетовый": "#d3bff0", "Серый": "#d8d8d4" };
+var LEVELS = ["1 — самая низкая", "2 — низкая", "3 — средняя", "4 — высокая", "5 — самая высокая"];
+var events = [], day = 0, editing = null, pendingDelete = null;
+var ask = document.getElementById("ask"), askText = document.getElementById("askText");
+var dlg = document.getElementById("dlg"), form = document.getElementById("form"), err = document.getElementById("err");
+
+try { events = JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { events = []; }
+events.forEach(function (e, i) { if (!e.id) e.id = Date.now().toString(36) + i; });
+function save() { try { localStorage.setItem(KEY, JSON.stringify(events)); } catch (x) {} }
+
+function hm(min) { return Math.floor(min / 60) + ":" + String(min % 60).padStart(2, "0"); }
+function fill(sel, items) { items.forEach(function (it) { var o = document.createElement("option"); o.value = it[0]; o.textContent = it[1]; sel.appendChild(o); }); }
+
+var hoursStart = [], hoursEnd = [], minutes = [];
+for (var mm = 0; mm < 60; mm += 5) minutes.push([mm, String(mm).padStart(2, "0")]);
+for (var hh = START; hh <= END; hh++) { if (hh < END) hoursStart.push([hh, hh]); hoursEnd.push([hh, hh]); }
+fill(form.startH, hoursStart); fill(form.startM, minutes);
+fill(form.endH, hoursEnd); fill(form.endM, minutes);
+fill(form.level, LEVELS.map(function (t, i) { return [i + 1, t]; }));
+fill(form.color, Object.keys(COLORS).map(function (c) { return [c, c]; }));
+form.level.value = 3;
+
+var axis = document.getElementById("axis");
+for (var h = START; h < END; h++) { var d = document.createElement("div"); d.textContent = h + ":00"; axis.appendChild(d); }
+document.querySelectorAll(".day").forEach(function (sec) {
+  var a = axis.cloneNode(true);
+  a.removeAttribute("id"); a.classList.add("axis-day");
+  sec.insertBefore(a, sec.querySelector(".track"));
+});
+
+function lastEnd(n) {
+  return events.filter(function (e) { return e.day === n; }).reduce(function (a, e) { return Math.max(a, e.end); }, 0);
+}
+
+var ICON_EDIT = '<svg viewBox="0 0 24 24"><path d="M4 20l1-5L16 4l4 4L9 19z"/><path d="M14 6l4 4"/></svg>';
+var ICON_DEL = '<svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg>';
+
+function iconBtn(cls, label, text, fn) {
+  var b = document.createElement("button");
+  b.type = "button"; b.className = cls;
+  if (text.charAt(0) === "<") b.innerHTML = text; else b.textContent = text; b.setAttribute("aria-label", label);
+  b.onclick = function (ev) { ev.stopPropagation(); fn(); };
+  return b;
+}
+
+function makeBar(e) {
+  var bar = document.createElement("div"), acts = document.createElement("span");
+  bar.className = "bar"; acts.className = "acts";
+  bar.appendChild(iconBtn("circle", e.done ? "Вернуть событие" : "Отметить выполненным", "✓", function () { e.done = !e.done; save(); render(); }));
+  acts.appendChild(iconBtn("icon", "Править событие", ICON_EDIT, function () { openEdit(e); }));
+  acts.appendChild(iconBtn("icon", "Удалить событие", ICON_DEL, function () {
+    pendingDelete = e.id; askText.textContent = "Удалить событие «" + e.title + "»?"; ask.showModal();
+  }));
+  bar.appendChild(acts);
+  return bar;
+}
+
+function barFit(el) {
+  var bar = el.querySelector(".bar");
+  bar.style.display = "flex";
+  var circle = bar.firstChild.offsetWidth + 10, full = circle + bar.lastChild.offsetWidth + 6;
+  bar.style.display = "";
+  return el.clientWidth >= full ? "bar-on" : el.clientWidth >= circle ? "bar-circle" : "";
+}
+
+function render() {
+  document.querySelectorAll(".track").forEach(function (track) {
+    var n = Number(track.dataset.day);
+    track.querySelectorAll(".event").forEach(function (el) { el.remove(); });
+    var list = events.filter(function (e) { return e.day === n; }).sort(function (a, b) { return a.start - b.start; });
+    var cluster = [], lanes = [], clusterEnd = 0;
+    function flush() { cluster.forEach(function (e) { e.lanes = lanes.length; }); }
+    list.forEach(function (e) {
+      if (cluster.length && e.start >= clusterEnd) { flush(); cluster = []; lanes = []; }
+      var lane = lanes.findIndex(function (end) { return end <= e.start; });
+      if (lane < 0) { lane = lanes.length; lanes.push(0); }
+      lanes[lane] = e.end; e.lane = lane; cluster.push(e); clusterEnd = Math.max(clusterEnd, e.end);
+    });
+    flush();
+    list.forEach(function (e) {
+      var el = document.createElement("div"), body = document.createElement("div"), txt = document.createElement("div"), t = document.createElement("strong");
+      el.className = "event" + (e.level >= 3 ? " heavy" : "") + (e.level >= 4 ? " marked" : "") + (e.done ? " done" : "");
+      body.className = "body"; txt.className = "txt";
+      el.style.top = ((e.start / 60 - START) * H) + "px";
+      el.style.setProperty("--h0", ((e.end - e.start) / 60 * H - 1) + "px");
+      el.style.setProperty("--l0", (e.lane / e.lanes * 100) + "%");
+      el.style.setProperty("--w0", (100 / e.lanes) + "%");
+      el.style.background = e.done ? "color-mix(in srgb, " + COLORS[e.color] + " 40%, #fffdf5)" : COLORS[e.color];
+      t.textContent = e.title;
+      txt.appendChild(t);
+      var info = [hm(e.start) + "–" + hm(e.end), "Важность: " + e.level + " из 5"];
+      if (e.people) info.push("Участники: " + e.people);
+      if (e.note) info.push(e.note);
+      info.forEach(function (line) { var p = document.createElement("div"); p.textContent = line; txt.appendChild(p); });
+      body.appendChild(txt);
+      el.appendChild(body);
+      el.appendChild(makeBar(e));
+      if (e.level >= 4) { var st = document.createElement("span"); st.className = "sticker"; st.textContent = e.level === 5 ? "!!" : "!"; el.appendChild(st); }
+      track.appendChild(el);
+      if (txt.offsetHeight + 2 + 28 <= el.clientHeight) {
+        var fit = barFit(el);
+        if (fit) el.classList.add(fit);
+      }
+    });
+    var topBusy = list.some(function (e) { return e.start < START * 60 + 50; });
+    track.querySelector(".add").style.top = ((topBusy ? lastEnd(n) / 60 - START : 0) * H + 4) + "px";
+  });
+}
+
+function setTime(hSel, mSel, min) { hSel.value = Math.floor(min / 60); mSel.value = min % 60; }
+function syncEnd() {
+  var last = Number(form.endH.value) === END;
+  Array.prototype.forEach.call(form.endM.options, function (o) { o.disabled = last && o.value !== "0"; });
+  if (last) form.endM.value = 0;
+}
+form.endH.onchange = syncEnd;
+
+document.querySelectorAll(".add").forEach(function (b) {
+  b.onclick = function () {
+    day = Number(b.parentNode.dataset.day); editing = null;
+    var s = lastEnd(day) || 9 * 60;
+    if (s >= END * 60) s = END * 60 - 30;
+    form.reset(); form.level.value = 3;
+    setTime(form.startH, form.startM, s); setTime(form.endH, form.endM, Math.min(s + 60, END * 60)); syncEnd();
+    err.textContent = "";
+    dlg.showModal();
+  };
+});
+document.getElementById("cancel").onclick = function () { dlg.close(); };
+document.getElementById("askNo").onclick = function () { ask.close(); };
+document.getElementById("askYes").onclick = function () {
+  events = events.filter(function (x) { return x.id !== pendingDelete; });
+  save(); ask.close(); render();
+};
+
+function openEdit(e) {
+  editing = e.id; day = e.day;
+  form.reset();
+  form.elements.title.value = e.title;
+  setTime(form.startH, form.startM, e.start); setTime(form.endH, form.endM, e.end); syncEnd();
+  form.level.value = e.level; form.color.value = e.color;
+  form.people.value = e.people || ""; form.note.value = e.note || "";
+  err.textContent = "";
+  dlg.showModal();
+}
+
+function busyRanges(s, e) {
+  var others = events.filter(function (o) { return o.day === day && o.id !== editing && o.start < e && o.end > s; });
+  var pts = [s, e];
+  others.forEach(function (o) { pts.push(o.start, o.end); });
+  pts = pts.filter(function (t, i) { return t >= s && t <= e && pts.indexOf(t) === i; }).sort(function (a, b) { return a - b; });
+  var ranges = [];
+  for (var k = 0; k + 1 < pts.length; k++) {
+    var a = pts[k], b = pts[k + 1];
+    if (others.filter(function (o) { return o.start <= a && o.end >= b; }).length < 4) continue;
+    if (ranges.length && ranges[ranges.length - 1][1] === a) ranges[ranges.length - 1][1] = b;
+    else ranges.push([a, b]);
+  }
+  return ranges;
+}
+
+form.onsubmit = function (ev) {
+  ev.preventDefault();
+  var s = Number(form.startH.value) * 60 + Number(form.startM.value), e = Number(form.endH.value) * 60 + Number(form.endM.value);
+  if (!form.elements.title.value.trim()) { err.textContent = "Впишите название."; return; }
+  if (e <= s) { err.textContent = "Окончание должно быть позже начала."; return; }
+  var busy = busyRanges(s, e);
+  if (busy.length) {
+    err.textContent = "Уже 4 события " + busy.map(function (r) { return "с " + hm(r[0]) + " до " + hm(r[1]); }).join(", ") + ".";
+    return;
+  }
+  var data = { start: s, end: e, title: form.elements.title.value.trim(), people: form.people.value.trim(), note: form.note.value.trim(), level: Number(form.level.value), color: form.color.value };
+  var old = events.filter(function (x) { return x.id === editing; })[0];
+  if (old) Object.assign(old, data);
+  else events.push(Object.assign(data, { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), day: day, done: false }));
+  save();
+  dlg.close(); render();
+};
+
+document.addEventListener("keydown", function (ev) {
+  if (ev.key !== "Escape") return;
+  document.querySelectorAll(".event:hover").forEach(function (el) {
+    el.classList.add("suppress");
+    setTimeout(function () { el.classList.remove("suppress"); }, 500);
+  });
+});
+
+var resizeTimer;
+window.addEventListener("resize", function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(render, 200); });
+
+render();
+if (document.fonts) document.fonts.ready.then(render);
+</script>
+</body>
+</html>
