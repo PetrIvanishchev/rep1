@@ -8,7 +8,11 @@
   :root { --bg: #e8dcc0; --paper: #f6efdc; --fg: #1d1a14; --dim: #5e5444; --line: #1d1a14; }
   * { box-sizing: border-box; }
   body {
-    position: relative; margin: 0; padding: 64px 16px 48px; background: var(--bg); color: var(--fg);
+    position: relative; margin: 0; padding: 64px 16px 48px; background-color: var(--bg);
+    background-image: linear-gradient(rgba(232, 220, 192, .86), rgba(232, 220, 192, .86)), url("images/bg-1.jpg"), url("images/bg-2.jpg"), url("images/bg-3.jpg");
+    background-size: auto, 360px auto, 480px auto, 300px auto;
+    background-position: 0 0, 0 0, 170px 90px, 60px 210px;
+    background-blend-mode: normal, multiply, multiply, multiply; color: var(--fg);
     font: 17px/1.6 Georgia, "Times New Roman", serif;
     display: flex; justify-content: center;
   }
