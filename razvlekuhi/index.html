@@ -29,7 +29,6 @@
   .add { position: absolute; left: 4px; width: 36px; height: 36px; padding: 0; border: 3px solid #ff6b6b; border-radius: 50%; background: #fff; color: #ff6b6b; font: 700 28px/1 Caveat, "Comic Sans MS", cursive; cursor: pointer; }
   .add:hover { background: #ff6b6b; color: #fff; }
   .event { position: absolute; left: var(--l0); width: var(--w0); height: var(--h0); border: 2px solid rgba(31, 26, 46, .45); border-left-width: 6px; border-radius: 8px; font-size: 15px; line-height: 1.15; color: var(--fg); }
-  .event.marked { z-index: 2; }
   .event:not(.bar-on):not(.suppress):hover { z-index: 5; width: max(var(--w0), 240px); height: auto; min-height: var(--h0); box-shadow: 0 4px 14px rgba(31, 26, 46, .4); }
   .event .body { height: 100%; overflow: hidden; padding: 1px 5px; }
   .event.marked .body { padding-right: 22px; }
@@ -40,8 +39,13 @@
   .event.heavy strong { font-weight: 700; }
   .event.done { border-color: rgba(31, 26, 46, .25); }
   .event.done .txt { text-decoration: line-through; }
-  .sticker { position: absolute; top: -13px; right: -13px; min-width: 34px; height: 30px; padding: 0 6px; border-radius: 15px; background: #d62828; color: #fff; font: 700 26px/30px Caveat, "Comic Sans MS", cursive; text-align: center; transform: rotate(8deg); box-shadow: 0 1px 2px rgba(0, 0, 0, .45); }
+  .sticker { position: absolute; z-index: 3; top: -13px; right: -13px; min-width: 34px; height: 30px; padding: 0 6px; border-radius: 15px; background: #d62828; color: #fff; font: 700 26px/30px Caveat, "Comic Sans MS", cursive; text-align: center; transform: rotate(8deg); box-shadow: 0 1px 2px rgba(0, 0, 0, .45); }
   .event.done .sticker { display: none; }
+  .sticker.pic { display: flex; align-items: center; justify-content: center; width: 32px; min-width: 32px; height: 32px; padding: 0; border: 2px solid currentColor; border-radius: 50%; background: var(--paper); transform: rotate(-6deg); }
+  .sticker.pos2 { top: 19px; }
+  .event.pic-off .sticker.pic { display: none; }
+  .event.pic-off:not(.done):not(.bar-on):not(.suppress):hover .sticker.pic { display: flex; }
+  .sticker svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 28px; display: none; align-items: center; justify-content: space-between; padding: 0 5px 3px; }
   .event.bar-on .bar, .event.bar-circle .bar, .event:not(.suppress):hover .bar { display: flex; }
   .acts { display: flex; gap: 4px; }
@@ -55,6 +59,14 @@
   dialog::backdrop { background: rgba(60, 30, 120, .4); }
   label { display: block; margin: 0 0 .75rem; font-size: 20px; }
   input, select, textarea { display: block; width: 100%; margin-top: 2px; padding: 6px; font: inherit; border: 2px solid #b197fc; border-radius: 8px; background: #fff; color: var(--fg); }
+  .field { margin: 0 0 .75rem; font-size: 20px; }
+  .pick-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+  .pick { position: relative; display: block; margin: 0; cursor: pointer; }
+  .pick input { position: absolute; width: 1px; height: 1px; margin: 0; padding: 0; opacity: 0; }
+  .chip { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 2px solid #b197fc; border-radius: 50%; background: #fff; }
+  .chip svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .pick input:checked + .chip { border-width: 4px; border-color: var(--fg); background: #fff0b3; }
+  .pick input:focus-visible + .chip { outline: 2px solid var(--fg); outline-offset: 2px; }
   .row { display: flex; gap: 12px; }
   .row label { flex: 1; }
   .time { display: flex; gap: 4px; }
@@ -127,6 +139,7 @@ try {
         <label>Важность <select name="level"></select></label>
         <label>Цвет <select name="color"></select></label>
       </div>
+      <div class="field"><span>Стикер</span><div class="pick-row" id="stickerPick"></div></div>
       <label>Участники <input name="people" maxlength="120"></label>
       <label>Примечание <textarea name="note" rows="3" maxlength="300"></textarea></label>
       <p id="err"></p>
@@ -166,6 +179,17 @@ try {
 <script>
 var START = 6, END = 24, H = 48, KEY = "razvlekuhi-week";
 var COLORS = { "Красный": "#f4b6b0", "Оранжевый": "#f8cfa0", "Жёлтый": "#f3e6a0", "Зелёный": "#b9e0b4", "Синий": "#b4d0f0", "Фиолетовый": "#d3bff0", "Серый": "#d8d8d4" };
+var STICKERS = {
+  heart: { name: "Сердечко", color: "#d62828", svg: '<path d="M12 20.5S4 15.5 4 9.8A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 8 2.2c0 5.7-8 10.7-8 10.7z"/>' },
+  unicorn: { name: "Единорог", color: "#e64fa0", svg: '<g transform="translate(.8 0)"><path d="M6 22c0-6 1-11 3-15"/><path d="M9 7l1-4 2.5 3c3 .5 5 2.5 6.5 6 .6 1.5-.3 3-1.8 3.5l-2.2.5c-1.5.5-2.5 1.5-2.5 3.5V22H6"/><path d="M12.8 6.2L15.5 1.5l.5 5.8"/><path d="M7.5 8.5c-2-.5-4 .5-4 2.5 1.5-.2 2.5.5 2.8 2M6.3 14c-2 0-3.5 1-3.5 3 1.5 0 2.5.5 2.8 2"/><path d="M14.5 9.5h.01M17.8 13.2h.01"/></g>' },
+  money: { name: "Деньги", color: "#2f9e44", svg: '<circle cx="12" cy="12" r="9"/><path d="M14.5 9.5c-.5-1-1.5-1.5-2.5-1.5-1.5 0-2.5.8-2.5 2s1 1.7 2.5 2 2.5.8 2.5 2-1 2-2.5 2c-1 0-2-.5-2.5-1.5M12 6v2M12 16v2"/>' },
+  book: { name: "Книга", color: "#1c64c4", svg: '<path d="M12 6.5C10 5 7 4.5 4 5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V5c-3-.5-6 0-8 1.5zM12 6.5v13"/>' },
+  dog: { name: "Собака", color: "#8a5a2b", svg: '<path d="M8 7.5c1.2-.8 2.6-1 4-1s2.8.2 4 1l1.5 5.5c0 3.5-2.5 6-5.5 6s-5.5-2.5-5.5-6z"/><path d="M8 7.5C6 6.5 4.5 7.5 4.5 10.5c0 2 .5 3 1.5 4M16 7.5c2-1 3.5 0 3.5 3 0 2-.5 3-1.5 4"/><path d="M9.5 11h.01M14.5 11h.01M12 14h.01"/><path d="M12 14.5V16M12 16c-.8 1-2 1.2-3 .6M12 16c.8 1 2 1.2 3 .6"/>' },
+  popcorn: { name: "Попкорн", color: "#f08c00", svg: '<path d="M6 11l1.5 10h9L18 11z"/><path d="M10 11l.5 10M14 11l-.5 10"/><path d="M6 11a2.5 2.5 0 0 1 1-4.5 3 3 0 0 1 5-2 3 3 0 0 1 5 2 2.5 2.5 0 0 1 1 4.5"/>' },
+  family: { name: "Семья", color: "#7048e8", svg: '<circle cx="6" cy="8" r="2.3"/><circle cx="18" cy="8" r="2.3"/><circle cx="12" cy="13" r="2"/><path d="M2.5 20v-5a3.5 3.5 0 0 1 7 0v5M14.5 20v-5a3.5 3.5 0 0 1 7 0v5M9.5 20v-2a2.5 2.5 0 0 1 5 0v2"/>' },
+  plant: { name: "Растение", color: "#66a80f", svg: '<path d="M12 21v-9"/><path d="M12 12c0-4 3-6 7-6 0 4-3 6-7 6zM12 15c0-3-2-5-6-5 0 3 2 5 6 5z"/><path d="M8 21h8"/>' },
+  plane: { name: "Самолёт", color: "#15aabf", svg: '<g transform="translate(2.4 2.4) scale(.8)"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></g>' }
+};
 var LEVELS = ["1 — самая низкая", "2 — низкая", "3 — средняя", "4 — высокая", "5 — самая высокая"];
 var events = [], day = 0, editing = null, pendingDelete = null;
 var ask = document.getElementById("ask"), askText = document.getElementById("askText");
@@ -186,6 +210,14 @@ fill(form.endH, hoursEnd); fill(form.endM, minutes);
 fill(form.level, LEVELS.map(function (t, i) { return [i + 1, t]; }));
 fill(form.color, Object.keys(COLORS).map(function (c) { return [c, c]; }));
 form.level.value = 3;
+var pickItems = [["", "без стикера", "#6b6b66", '<circle cx="12" cy="12" r="8"/><path d="M6.3 6.3l11.4 11.4"/>']];
+Object.keys(STICKERS).forEach(function (k) { pickItems.push([k, STICKERS[k].name, STICKERS[k].color, STICKERS[k].svg]); });
+pickItems.forEach(function (it, i) {
+  var lab = document.createElement("label");
+  lab.className = "pick"; lab.title = it[1];
+  lab.innerHTML = '<input type="radio" name="sticker" value="' + it[0] + '"' + (i === 0 ? " checked" : "") + ' aria-label="' + it[1] + '"><span class="chip" style="color:' + it[2] + '"><svg viewBox="0 0 24 24">' + it[3] + "</svg></span>";
+  document.getElementById("stickerPick").appendChild(lab);
+});
 
 var axis = document.getElementById("axis");
 for (var h = START; h < END; h++) { var d = document.createElement("div"); d.textContent = h + ":00"; axis.appendChild(d); }
@@ -246,7 +278,9 @@ function render() {
     flush();
     list.forEach(function (e) {
       var el = document.createElement("div"), body = document.createElement("div"), txt = document.createElement("div"), t = document.createElement("strong");
-      el.className = "event" + (e.level >= 3 ? " heavy" : "") + (e.level >= 4 ? " marked" : "") + (e.done ? " done" : "");
+      var heightPx = (e.end - e.start) / 60 * H - 1, pic = e.sticker && STICKERS[e.sticker];
+      var picOff = pic && e.level >= 4 && heightPx < 80;
+      el.className = "event" + (e.level >= 3 ? " heavy" : "") + (e.level >= 4 || pic ? " marked" : "") + (picOff ? " pic-off" : "") + (e.done ? " done" : "");
       body.className = "body"; txt.className = "txt";
       el.style.top = ((e.start / 60 - START) * H) + "px";
       el.style.setProperty("--h0", ((e.end - e.start) / 60 * H - 1) + "px");
@@ -263,6 +297,13 @@ function render() {
       el.appendChild(body);
       el.appendChild(makeBar(e));
       if (e.level >= 4) { var st = document.createElement("span"); st.className = "sticker"; st.textContent = e.level === 5 ? "!!" : "!"; el.appendChild(st); }
+      if (pic) {
+        var sp = document.createElement("span");
+        sp.className = "sticker pic" + (e.level >= 4 ? " pos2" : "");
+        sp.style.color = pic.color;
+        sp.innerHTML = '<svg viewBox="0 0 24 24">' + pic.svg + "</svg>";
+        el.appendChild(sp);
+      }
       track.appendChild(el);
       if (txt.offsetHeight + 2 + 28 <= el.clientHeight) {
         var fit = barFit(el);
@@ -306,7 +347,7 @@ function openEdit(e) {
   form.elements.title.value = e.title;
   setTime(form.startH, form.startM, e.start); setTime(form.endH, form.endM, e.end); syncEnd();
   form.level.value = e.level; form.color.value = e.color;
-  form.people.value = e.people || ""; form.note.value = e.note || "";
+  form.people.value = e.people || ""; form.note.value = e.note || ""; form.elements.sticker.value = e.sticker || "";
   err.textContent = "";
   dlg.showModal();
 }
@@ -336,7 +377,7 @@ form.onsubmit = function (ev) {
     err.textContent = "Уже 4 события " + busy.map(function (r) { return "с " + hm(r[0]) + " до " + hm(r[1]); }).join(", ") + ".";
     return;
   }
-  var data = { start: s, end: e, title: form.elements.title.value.trim(), people: form.people.value.trim(), note: form.note.value.trim(), level: Number(form.level.value), color: form.color.value };
+  var data = { start: s, end: e, title: form.elements.title.value.trim(), people: form.people.value.trim(), note: form.note.value.trim(), level: Number(form.level.value), color: form.color.value, sticker: form.elements.sticker.value };
   var old = events.filter(function (x) { return x.id === editing; })[0];
   if (old) Object.assign(old, data);
   else events.push(Object.assign(data, { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), day: day, done: false }));
