@@ -17,11 +17,13 @@
   @font-face { font-family: "Bad Script"; src: url("fonts/pole/BadScript-Regular.ttf") format("truetype"); font-display: swap; }
   @font-face { font-family: "Philosopher"; src: url("fonts/pole/Philosopher-Regular.ttf") format("truetype"); font-display: swap; }
   @font-face { font-family: "Yeseva One"; src: url("fonts/pole/YesevaOne-Regular.ttf") format("truetype"); font-display: swap; }
+  @font-face { font-family: "OpenDyslexic"; src: url("fonts/OpenDyslexic-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+  @font-face { font-family: "OpenDyslexic"; src: url("fonts/OpenDyslexic-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 
   :root { --face: #c0c0c0; --hi: #fff; --lo: #808080; --dk: #0a0a0a; --title: #000080; --desk: #008080; --paper: #fff; --fg: #000; --accent: #000080; --line: #808080; }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
-  body { margin: 0; padding: 24px 12px 64px; background: var(--desk); color: #000; font: 12px/1.7 "Press Start 2P", Tahoma, monospace; display: flex; justify-content: center; }
+  body { margin: 0; padding: 56px 12px 64px; background: var(--desk); color: #000; font: 12px/1.7 "Press Start 2P", Tahoma, monospace; display: flex; justify-content: center; }
   main { max-width: 40rem; width: 100%; }
 
   .win, dialog { padding: 3px; border: 0; background: var(--face); color: #000; box-shadow: inset -1px -1px var(--dk), inset 1px 1px #dfdfdf, inset -2px -2px var(--lo), inset 2px 2px var(--hi), 2px 2px 0 var(--dk); }
@@ -108,10 +110,16 @@
   .pick input:checked + .chip { background: #e8e8c0; box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo), inset -2px -2px #dfdfdf, inset 2px 2px var(--dk); }
   .pick input:focus-visible + .chip { outline: 1px dotted #000; outline-offset: 2px; }
   .status { margin: 14px 0 0; padding: 6px 8px; font-size: 8px; line-height: 1.8; box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo); }
+  .dys-switch { position: absolute; top: 8px; right: 8px; z-index: 60; display: flex; align-items: center; gap: 6px; padding: 4px 8px; font: 14px/1.3 "OpenDyslexic", system-ui, sans-serif; background: #fffaf0; color: #1d1a14; border: 1px solid #1d1a14; cursor: pointer; }
+  #dysNote { margin: .5rem 0 0; }
+  html.dys body { background: #fbfbfa; }
+  html.dys * { font-family: "OpenDyslexic", sans-serif !important; font-style: normal !important; }
+  html.dys .dys-switch, html.dys .dys-switch * { font-family: system-ui, sans-serif !important; }
   #err { color: #a00000; margin: 0 0 .75rem; min-height: 1.4em; }
 </style>
 </head>
 <body>
+<label class="dys-switch"><input type="checkbox" id="dys">Шрифт для дислексии</label>
 <main>
 
   <section class="win">
@@ -136,6 +144,7 @@
     </fieldset>
 
     <div id="sensors"></div>
+    <p id="dysNote" hidden>Режим для дислексии отключил выбор шрифта и цветов. Выбранное сохранено и вернётся после выключения режима.</p>
 
     <div class="row" style="margin-top:1rem">
       <button type="button" id="postBtn">Создать пост</button>
@@ -145,7 +154,7 @@
 
       <button type="button" class="big" id="resultBtn">Выдать результат</button>
 
-      <div class="status">Иконки: Pixelarticons (Gerrit Halfmann, MIT), Pixel Icon (HackerNoon, CC BY 4.0). Единорог, семья и попкорн нарисованы вручную. Шрифт: Press Start 2P (SIL OFL).</div>
+      <div class="status">Иконки: Pixelarticons (Gerrit Halfmann, MIT), Pixel Icon (HackerNoon, CC BY 4.0). Единорог, семья и попкорн нарисованы вручную. Шрифты: Press Start 2P, OpenDyslexic (SIL OFL).</div>
     </div>
   </section>
 
@@ -193,6 +202,7 @@
 
 </main>
 <script>
+try { if (localStorage.dys === "1") document.documentElement.classList.add("dys"); } catch (e) {}
 var KEY = "pole-state", MAX_POSTS = 5;
 var ICONS = {"star": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M5 20h3v2H3v-6h2zm16 2h-5v-2h3v-4h2zm-11-2H8v-2h2zm6 0h-2v-2h2zm-2-2h-4v-2h4zm-7-2H5v-3h2zm12 0h-2v-3h2zM5 13H3v-2h2zm16 0h-2v-2h2zM9 9H3v2H1V7h8zm14 2h-2V9h-6V7h8zM11 7H9V3h2zm4 0h-2V3h2zm-2-4h-2V1h2z\"/></g>", "moon": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M18 22H8v-2h10zM8 20H6v-2h2zm12 0h-2v-2h2zM6 18H4v-2h2zm16 0h-2v-4h-2v-2h2v-2h2zM4 16H2V6h2zm14 0h-6v-2h6zm-6-2h-2v-2h2zm-2-2H8V6h2zM6 6H4V4h2zm8-2h-2v2h-2V4H6V2h8z\"/></g>", "sun": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M13 22h-2v-3h2zm-6-3H5v-2h2zm12 0h-2v-2h2zm-4-2H9v-2h6zm-6-2H7V9h2zm8 0h-2V9h2zM5 13H2v-2h3zm17 0h-3v-2h3zm-7-4H9V7h6zM7 7H5V5h2zm12 0h-2V5h2zm-6-2h-2V2h2z\"/></g>", "cloud": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M22 10h-4v2h4zm2 2h-2v6h2zm-2 6H2v2h20zM2 12H0v6h2zm2-2H2v2h2zm4-2H4v2h4zm8-4h-6v2h6zm-6 2H8v2h2zm0 4H8v2h2zm8-4h-2v2h2z\"/><path d=\"M20 8h-2v4h2zm-2 4h-2v2h2z\"/></g>", "music": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M4 12h4v2H4zm-2 2h2v4H2zm2 4h4v2H4zM8 6h2v12H8zm10 0h2v12h-2zm-6 8h2v4h-2zm2-2h4v2h-4zm0 6h4v2h-4zM10 4h8v2h-8z\"/></g>", "gift": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M4 6h16v2H4zM2 8h2v4H2zm2 4h16v2H4zm16-4h2v4h-2zM6 4h2v2H6zm2-2h3v2H8zm3 2h2v2h-2zm2-2h3v2h-3zm3 2h2v2h-2zM4 14h2v6H4zm2 6h12v2H6zm12-6h2v6h-2zm-7-6h2v4h-2zm0 6h2v6h-2z\"/></g>", "crown": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M3 3h2v12H3zm16 0h2v12h-2zm-8 0h2v2h-2zM9 5h2v2H9zM5 5h2v2H5z\"/><path d=\"M3 3h2v2H3zm4 4h2v2H7zm6-2h2v2h-2zm2 2h2v2h-2zm2-2h2v2h-2zM5 15h14v2H5zm-2 4h18v2H3z\"/></g>", "key": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M11 18H3v-2h8zm12-3h-2v3h-4v-2h2v-3h2v-2H11V8h2v1h10zM3 16H1V8h2zm14 0h-2v-1h-2v1h-2v-3h6zm-8-2H5v-4h4zm2-6H3V6h8z\"/></g>", "flag": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M4 2h2v20H4z\"/><path d=\"M4 4h16v2H4zm12 2h2v2h-2zm-2 2h2v2h-2zm2 2h2v2h-2zM4 12h16v2H4z\"/></g>", "bell": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M9 2h6v2H9zM7 4h2v2H7zm8 0h2v2h-2zM5 6h2v7H5zm12 0h2v7h-2zM3 13h2v4H3zm16 0h2v4h-2z\"/><path d=\"M3 15h18v2H3zm5 3h2v2H8zm6 0h2v2h-2zm-4 2h4v2h-4z\"/></g>", "camera": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M4 5h4v2H4zm4-2h8v2H8zm8 2h4v2h-4zM2 7h2v12H2zm2 12h16v2H4zM20 7h2v12h-2zM10 8h4v2h-4zm0 6h4v2h-4zm-2-4h2v4H8zm6 0h2v4h-2z\"/></g>", "trophy": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M16 17h-3v2h2v2H9v-2h2v-2H8v-2h8zm2-12h4v6h-2V7h-2v4h2v2h-2v2h-2V5H8v10H6v-2H4v-2h2V7H4v4H2V5h4V3h12z\"/></g>", "cake": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M1 20h22v2H1zm2-8h2v8H3zm2-2h14v2H5zm14 2h2v8h-2zm-8-5h2v3h-2zM7 7h2v3H7zm8 0h2v3h-2zM7 3h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM5 14h2v2H5zm2 2h4v2H7zm4-2h6v2h-6zm6 2h2v2h-2z\"/></g>", "fire": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M9 2h2v4H9zM7 6h2v2H7zM5 8h2v2H5zm8 2h2v2h-2zm2-2h2v2h-2zm2 2h2v2h-2zm2 2h2v6h-2zM3 10h2v8H3zm8-4h2v4h-2zm6 12h2v2h-2zM7 20h10v2H7zm-2-2h2v2H5zm4-2h6v4H9z\"/><path d=\"M11 14h2v3h-2z\"/></g>", "anchor": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M10 2h4v2h-4zm0 6h4v2h-4zM8 4h2v4H8zm6 0h2v4h-2z\"/><path d=\"M11 9h2v12h-2z\"/><path d=\"M5 20h14v2H5zm-2-8h2v8H3zm16 0h2v8h-2zM5 12h2v2H5zm12 0h2v2h-2z\"/></g>", "balloon": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M9 1h6v2H9zM7 3h2v2H7zm8 0h2v2h-2zm-4 2h2v2h-2zm2 2h2v2h-2zM5 5h2v8H5zm12 0h2v8h-2zM7 13h2v2H7zm2 2h2v2H9zm4 4h4v2h-4zm-2-4h4v2h-4zm4-2h2v2h-2zm2 8h2v2h-2zm-6-4h2v2h-2z\"/></g>", "alien": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M14 22h-4v-2h4zm-4-2H8v-2h2zm6 0h-2v-2h2zm-8-2H6v-2h2zm10 0h-2v-2h2zm-5-1h-2v-2h2zm-7-1H4v-2h2zm14 0h-2v-2h2zM4 14H2V6h2zm18 0h-2V6h2zm-12-4h1v3H8v-1H6V8h4zm8 2h-2v1h-3v-3h1V8h4zM6 6H4V4h2zm14 0h-2V4h2zm-2-2H6V2h12z\"/></g>", "bug": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M2 5h2v4H2zm20 0h-2v4h2zM4 9h2v2H4zm16 0h-2v2h2zM2 13h4v2H2zm20 0h-4v2h4zM4 17h2v2H4zm16 0h-2v2h2zM2 19h2v2H2zm20 0h-2v2h2zM6 11h12v2H6z\"/><path d=\"M6 7h2v12H6zm10 0h2v12h-2zM8 19h8v2H8zM8 5h8v2H8z\"/><path d=\"M11 15h2v6h-2zM8 1h2v6H8zm6 0h2v6h-2z\"/></g>", "castle": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M1 8h2v12H1zm2 12h18v2H3zM21 8h2v12h-2zM3 10h18v2H3zm2-8h2v8H5zm12 0h2v8h-2zM7 4h10v2H7zm2-2h2v2H9zm4 0h2v2h-2zM8 16h2v4H8zm2-2h4v2h-4zm4 2h2v4h-2z\"/></g>", "sparkles": "<g fill=\"currentColor\" stroke=\"none\" shape-rendering=\"crispEdges\"><path d=\"M11 1h2v4h-2zm0 22h2v-4h-2zM9 5h2v4H9zm0 14h2v-4H9zm4-14h2v4h-2zm0 14h2v-4h-2zM5 9h4v2H5zm14 0h-4v2h4zM1 11h4v2H1zm22 0h-4v2h4zM5 13h4v2H5zm14 0h-4v2h4zm0-12h2v6h-2z\"/><path d=\"M17 3h6v2h-6zM3 17h2v2H3zm-2 2h2v2H1zm2 2h2v2H3zm2-2h2v2H5z\"/></g>"};
 var ICON_KEYS = Object.keys(ICONS);
@@ -282,7 +292,7 @@ fillSelect("pron2", ["его", "её", "их"], "p2");
 
 SENSORS.forEach(function (x) {
   var row = el("div", "sensor"), lab = el("label", "sw"), inp = document.createElement("input"), tr = el("span", "track"), tx = el("span", "txt");
-  inp.type = "checkbox"; inp.checked = st.s[x.id];
+  inp.type = "checkbox"; inp.checked = st.s[x.id]; x.inp = inp;
   inp.onchange = function () { st.s[x.id] = inp.checked; tx.textContent = inp.checked ? "да" : "нет"; save(); refresh(); };
   tx.textContent = inp.checked ? "да" : "нет";
   lab.appendChild(inp); lab.appendChild(tr); lab.appendChild(tx);
@@ -494,7 +504,7 @@ function renderCard() {
     }
     body.appendChild(box);
   });
-  if (st.s.color || st.s.wordbg) decorate(body, bg);
+  if (!isDys() && (st.s.color || st.s.wordbg)) decorate(body, bg);
   applyWin();
 }
 
@@ -517,6 +527,19 @@ function decorate(root, bg) {
   });
 }
 
+/* ---- режим для дислексии ---- */
+function isDys() { return document.documentElement.classList.contains("dys"); }
+function applyDys() {
+  SENSORS.forEach(function (x) { x.inp.disabled = isDys(); });
+  $("dysNote").hidden = !isDys();
+}
+$("dys").checked = isDys();
+$("dys").onchange = function () {
+  document.documentElement.classList.toggle("dys", this.checked);
+  try { localStorage.dys = this.checked ? "1" : "0"; } catch (e) {}
+  applyDys(); renderCard();
+};
+
 /* ---- обновление экрана ---- */
 function refresh() {
   $("bgCode").textContent = st.bg ? rgbText(st.bg) : "—";
@@ -528,7 +551,7 @@ function refresh() {
   renderPostList();
   renderCard();
 }
-refresh();
+refresh(); applyDys();
 </script>
 </body>
 </html>
