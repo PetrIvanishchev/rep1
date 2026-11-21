@@ -1,0 +1,7 @@
+{
+  "name": "proverka",
+  "private": true,
+  "description": "Браузерные проверки предикатов для check.sh",
+  "type": "module",
+  "devDependencies": { "playwright": "1.49.1" }
+}
