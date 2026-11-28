@@ -99,6 +99,8 @@
   html.phone .day .head { grid-column: 1 / -1; }
   html.phone .axis-day { display: block; }
   html.phone h1 { display: block; width: fit-content; max-width: 100%; margin: 0 auto 1.25rem; text-align: center; }
+  #schet { margin: -.5rem 0 1rem; font-size: 24px; }
+  html.phone #schet { text-align: center; }
   #err { color: #b00020; margin: 0 0 .75rem; min-height: 1.3em; }
 </style>
 <script>
@@ -114,6 +116,7 @@ try {
 <main>
 
   <h1>Расписание на неделю</h1>
+  <p id="schet"></p>
 
   <div class="scroll">
     <div class="week">
@@ -263,6 +266,8 @@ function barFit(el) {
 }
 
 function render() {
+  var done = events.filter(function (e) { return e.done; }).length;
+  document.getElementById("schet").textContent = "Событий за неделю: " + events.length + ", выполнено: " + done;
   document.querySelectorAll(".track").forEach(function (track) {
     var n = Number(track.dataset.day);
     track.querySelectorAll(".event").forEach(function (el) { el.remove(); });
