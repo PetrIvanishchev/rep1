@@ -65,9 +65,9 @@ const t = {
 
 const only = process.argv[2];
 // Сайты, у которых проверки уже написаны. Добавил sites/<имя>.mjs: впиши имя сюда.
-const sites = ['istoriya', 'akkaunt', 'wikidata'].filter(s => !only || s === only);
+const sites = ['istoriya', 'akkaunt', 'razvlekuhi', 'wikidata'].filter(s => !only || s === only);
 // Сайты без проверок. Это не ДА и не НЕТ: честное «не проверяется».
-const NOT_CHECKED = ['razvlekuhi/index.html (расписание)'];
+const NOT_CHECKED = [];
 if (!only) for (const n of NOT_CHECKED) console.log(`\n  [ ${y('НЕ ПРОВЕРЯЕТСЯ')} ] ${n}: проверок пока нет, предикаты смотри глазами`);
 for (const s of sites) {
   const file = path.join(path.dirname(fileURLToPath(import.meta.url)), 'sites', `${s}.mjs`);
